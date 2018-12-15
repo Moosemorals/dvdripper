@@ -2,14 +2,40 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"log"
-	"os"
 	"regexp"
 	"strconv"
 )
 
-func lsdvd() DVD {
+// DVDTrack holds details about an indivdual track
+type DVDTrack struct {
+	// Title is an index into the disc
+	Title int
+	// Length is the length of the title in hh:mm:ss.ms format
+	Length string
+	// Chapters is a count of the chapters in the title
+	Chapters int
+	// Cells is the count of the cells in the title
+	Cells int
+	// Streams is the count of audio streams in the title
+	Streams int
+	// Subpictures is the count of (probably) subtitles
+	Subpictures int
+}
+
+// DVD holds track information about a DVD
+type DVD struct {
+	// Title (id) of the disk
+	Title string
+	// LongestTrack is the index of the longest track
+	LongestTrack int
+	// Titles is a slice of all the titles on the disk
+	Titles []DVDTrack
+	// ParseOK is a bool that's true if there were no parsing errors
+	ParseOK bool
+}
+
+func (disk *DVD) scan() {
 	cmd, stdout, err := startCmd("/usr/bin/lsdvd")
 
 	if err != nil {
@@ -19,10 +45,6 @@ func lsdvd() DVD {
 	reDiskTitle := regexp.MustCompile(`^Disc Title: (.+)$`)
 	reTitle := regexp.MustCompile(`^Title: (\d\d), Length: (\d\d:\d\d:\d\d.\d\d\d) Chapters: (\d\d), Cells: (\d\d), Audio streams: (\d\d), Subpictures: (\d\d)$`)
 	reLongestTrack := regexp.MustCompile(`^Longest track: (\d\d)$`)
-
-	disk := DVD{
-		ParseOK: true,
-	}
 
 	scanner := bufio.NewScanner(stdout)
 scan:
@@ -74,11 +96,4 @@ scan:
 
 	// Wait for the command to finish.
 	cmd.Wait()
-
-	return disk
-}
-
-func diskToJSON() {
-	disk := lsdvd()
-	json.NewEncoder(os.Stdout).Encode(disk)
 }

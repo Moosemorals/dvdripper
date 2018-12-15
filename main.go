@@ -6,34 +6,6 @@ import (
 	"os/exec"
 )
 
-// DVDTrack holds details about an indivdual track
-type DVDTrack struct {
-	// Title is an index into the disc
-	Title int
-	// Length is the length of the title in hh:mm:ss.ms format
-	Length string
-	// Chapters is a count of the chapters in the title
-	Chapters int
-	// Cells is the count of the cells in the title
-	Cells int
-	// Streams is the count of audio streams in the title
-	Streams int
-	// Subpictures is the count of (probably) subtitles
-	Subpictures int
-}
-
-// DVD holds track information about a DVD
-type DVD struct {
-	// Title (id) of the disk
-	Title string
-	// LongestTrack is the index of the longest track
-	LongestTrack int
-	// Titles is a slice of all the titles on the disk
-	Titles []DVDTrack
-	// ParseOK is a bool that's true if there were no parsing errors
-	ParseOK bool
-}
-
 // DVDProgress reports the progress of the rip
 type DVDProgress struct {
 	// Bytes is the number of bytes written to disk
