@@ -59,8 +59,6 @@ func startCmd(path string, args ...string) (cmd *exec.Cmd, stdout io.ReadCloser,
 func main() {
 	log.Print("Starting")
 
-	err := mplayer(3, "/tmp/junk.mpg")
-	if err != nil {
-		log.Fatalf("Can't run mplayer: %v", err)
-	}
+	startServer()
+
 }
