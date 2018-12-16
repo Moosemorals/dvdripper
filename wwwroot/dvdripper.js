@@ -271,6 +271,19 @@ function handleRipProgress(payload) {
     updateProgress($$("#progress-" + payload.track)[0], payload.percent)
 }
 
+
+function notify(payload) {
+    if (Notification.permission === "granted") {
+        new Notification("Track " + payload.track + " has finished ripping and is ready to download")
+    } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                notify(payload)
+            }
+        })
+    } 
+}
+
 function handleRipCompleted(payload) {
     log.info("Completed ripping track ", payload.track)
     updateProgress($$("#progress-" + payload.track)[0], 100)
@@ -288,6 +301,8 @@ function handleRipCompleted(payload) {
             "Download" 
             )
         )
+
+    notify(payload)
 }
 
 function cmdRip() {
@@ -305,3 +320,4 @@ function cmdRip() {
 
 document.getElementById("cmd-scan").addEventListener("click", cmdSend)
 document.getElementById("cmd-rip").addEventListener("click", cmdRip)
+
