@@ -10,16 +10,21 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// OutboundResponse is the response to the client
-type OutboundResponse struct {
-	// Message
-	Message string          `json:"message"`
+// CmdPacket is the data structure for talking to/from the remote end
+type CmdPacket struct {
+	Command string          `json:"cmd"`
 	Payload json.RawMessage `json:"payload"`
+}
+
+// RipTrack holds details about tracks to be ripped
+type RipTrack struct {
+	Track    int    `json:"track"`
+	Filename string `json:"filename"`
 }
 
 type client struct {
 	conn    *websocket.Conn
-	out     chan OutboundResponse
+	out     chan CmdPacket
 	control chan bool
 }
 
@@ -44,8 +49,8 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 8096,
 }
 
-func buildErrorResponse(msg string) (result OutboundResponse) {
-	result.Message = "error"
+func buildErrorResponse(msg string) (result CmdPacket) {
+	result.Command = "error"
 	j, err := json.Marshal(msg)
 	if err != nil {
 		log.Printf("ERROR: Can't convert error to json: %v", err)
@@ -55,32 +60,94 @@ func buildErrorResponse(msg string) (result OutboundResponse) {
 	return
 }
 
+func (c *client) send(cmd string, payload interface{}) error {
+	j, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("WARN: Can't convert %v to json: %v", payload, err)
+		return err
+	}
+
+	c.out <- CmdPacket{
+		Command: cmd,
+		Payload: j,
+	}
+
+	return nil
+}
+
+func (c *client) doScan() error {
+	disk := DVD{}
+	disk.scan()
+
+	err := c.send("scan", disk)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *client) doRip(payload json.RawMessage) error {
+
+	tracks := []RipTrack{}
+
+	err := json.Unmarshal(payload, &tracks)
+	if err != nil {
+		return err
+	}
+
+	log.Print("Ripping:", tracks)
+	for _, track := range tracks {
+		m := mplayer{
+			progress: make(chan DVDProgress),
+		}
+
+		if err := c.send("rip-started", track); err != nil {
+			return err
+		}
+
+		go m.rip(track.Track, "wwwroot/rips/"+track.Filename)
+
+		for update := range m.progress {
+			if err := c.send("rip-progress", update); err != nil {
+				return err
+			}
+		}
+
+		if err := c.send("rip-completed", track); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (c *client) readHandler(in io.Reader) error {
 	raw, err := ioutil.ReadAll(in)
 	if err != nil {
 		return err
 	}
 
-	cmd := string(raw)
-	switch cmd {
-	case "scan":
-		disk := DVD{}
-		disk.scan()
+	log.Printf("Got packet %s", raw)
 
-		j, err := json.Marshal(disk)
-		if err != nil {
-			log.Printf("WARN: Can't convert %v to json: %v", disk, err)
-			return nil
-		}
-
-		c.out <- OutboundResponse{
-			Message: "scan",
-			Payload: j,
-		}
-	default:
-		c.out <- buildErrorResponse("Unknown command: " + cmd)
+	var cmd CmdPacket
+	err = json.Unmarshal(raw, &cmd)
+	if err != nil {
+		return err
 	}
 
+	switch cmd.Command {
+	case "scan":
+		err = c.doScan()
+	case "rip":
+		err = c.doRip(cmd.Payload)
+	default:
+		c.out <- buildErrorResponse("Unknown command: " + cmd.Command)
+	}
+
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -95,7 +162,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	client := client{
 		conn:    conn,
-		out:     make(chan OutboundResponse),
+		out:     make(chan CmdPacket),
 		control: make(chan bool),
 	}
 
@@ -109,13 +176,11 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		log.Printf("Got a message from client type %d", messageType)
-
 		switch messageType {
 		case websocket.TextMessage:
 			err := client.readHandler(in)
 			if err != nil {
-				log.Printf("WARN: Client read error")
+				log.Print("WARN: Client read error", err)
 				client.control <- true
 				return
 			}

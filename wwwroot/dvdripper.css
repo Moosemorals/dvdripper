@@ -1,0 +1,28 @@
+#log {
+    font-size: 60%;
+}
+
+p.log {
+    margin-block-start: 0;
+    margin-block-end: 0.25em;
+}
+
+.log-debug {
+    color: #404040;
+}
+
+.log-info {
+    color: #40B040;
+}
+
+.log-warn {
+    color: #B0B040;
+}
+
+.log-error {
+    color: #B04004;
+}
+
+.hidden {
+    display: none;
+}

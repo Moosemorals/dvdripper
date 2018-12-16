@@ -3,27 +3,21 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
 	"log"
-	"os"
-	"os/exec"
 	"regexp"
 	"strconv"
 )
 
-func startMplayer(path string, args ...string) (cmd *exec.Cmd, stderr io.ReadCloser, err error) {
-	cmd = exec.Command(path, args...)
+// DVDProgress reports the progress of the rip
+type DVDProgress struct {
+	Track   int     `json:"track"`
+	Bytes   int     `json:"bytes"`
+	Percent float64 `json:"percent"`
+}
 
-	stderr, err = cmd.StderrPipe()
-	if err != nil {
-		return
-	}
-	if err = cmd.Start(); err != nil {
-		return
-	}
-	return
+type mplayer struct {
+	progress chan DVDProgress
 }
 
 // These two functions are adappted from the go library scanlines
@@ -47,6 +41,7 @@ func scanLines(data []byte, atEOF bool) (advance int, token []byte, err error) {
 		// Found a newline
 		return i + 1, dropCR(data), nil
 	}
+	// Added by me
 	if i := bytes.IndexByte(data, '\r'); i >= 0 {
 		// Found a newline
 		return i + 1, dropCR(data), nil
@@ -56,8 +51,7 @@ func scanLines(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	return 0, nil, nil
 }
 
-func mplayer(track int, dest string) error {
-
+func (m *mplayer) rip(track int, dest string) error {
 	src := fmt.Sprintf("dvd://%d", track)
 
 	cmd, stdout, err := startCmd("/usr/bin/mplayer", "-quiet", "-nocache", "-dumpstream", src, "-dumpfile", dest)
@@ -65,8 +59,6 @@ func mplayer(track int, dest string) error {
 	if err != nil {
 		return err
 	}
-
-	out := json.NewEncoder(os.Stdout)
 
 	dumpRE := regexp.MustCompile(`^dump: (\d+) bytes written \(~(\d+\.\d+)%\)$`)
 
@@ -88,17 +80,18 @@ func mplayer(track int, dest string) error {
 				log.Printf("WARN: %+v", err)
 				continue
 			}
-
-			progress := DVDProgress{
+			m.progress <- DVDProgress{
+				Track:   track,
 				Bytes:   bytes,
 				Percent: percent,
 			}
 
-			out.Encode(progress)
-			fmt.Println()
 		}
 	}
 
 	cmd.Wait()
+
+	close(m.progress)
+
 	return nil
 }

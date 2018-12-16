@@ -3,6 +3,7 @@
 
 <head>
     <title>DVD Ripper</title>
+    <link rel="stylesheet" type="text/css" href="dvdripper.css">
 </head>
 
 <body>
@@ -24,7 +25,12 @@
         </thead>
         <tbody id="tracklist"></tbody>
     </table>
-    <h2>Log</h2>
+    <h2>Log - <select id="log-level">
+        <option>Error</option>
+        <option>Warn</option>
+        <option selected>Info</option>
+        <option>Debug</option>
+    </select></h2>
     <output id="log"></output>
     <script defer src="dvdripper.js"></script>
 </body>
