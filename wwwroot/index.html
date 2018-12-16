@@ -7,24 +7,27 @@
 </head>
 
 <body class="centered">
-    <h1 class="text-center">The Fabulous Mr Wilkinson's Discological Discombobulator</h1>
-    <div class="command"><button id="cmd-scan">Scan</button> <button id="cmd-rip" disabled>Rip</button></div>
-    <table id="output" class="hidden">
-        <thead>
-            <tr>
-                <th>
-                    <input type="checkbox" id="chk-all">
-                </th>
-                <th>Track</th>
-                <th>Chapters</th>
-                <th>Length</th>
-                <th>Filename</th>
-                <th>Progress</th>
-                <th class="status">Status</th>
-            </tr>
-        </thead>
-        <tbody id="tracklist"></tbody>
-    </table>
+    <div id="logo" class="frame"><img alt="The Fabulous Mr Wilkinson's Discological Discombobulator" src="logo.png" width="767"
+            height="215"></div>
+    <div class="command frame"><button id="cmd-scan">Scan</button> <button id="cmd-rip" disabled>Rip</button></div>
+    <div id="output" class="hidden frame">
+        <table>
+            <thead>
+                <tr>
+                    <th>
+                        <input type="checkbox" id="chk-all">
+                    </th>
+                    <th>Track</th>
+                    <th>Chapters</th>
+                    <th>Length</th>
+                    <th>Filename</th>
+                    <th>Progress</th>
+                    <th class="status">Status</th>
+                </tr>
+            </thead>
+            <tbody id="tracklist"></tbody>
+        </table>
+    </div>
     <div class="hidden">
         <h2>Log - <select id="log-level">
                 <option>Error</option>

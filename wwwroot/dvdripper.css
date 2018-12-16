@@ -1,7 +1,7 @@
 *,
 *::before,
 *::after {
-    box-sizing: border-box;
+    box-sizing: context-box;
 }
 
 html {
@@ -24,20 +24,16 @@ body {
 .command {
     display: flex;
     flex-flow: row nowrap;
-    justify-content: center;
+    justify-content: space-around;
 }
 
 .command button {
     font-family: inherit;
-    font-size: 100%;
+    font-size: 250%;
     line-height: 1.15;
-    width: 6em;
-    height: 2.5em;
-    margin: 2em;
-}
-
-#output {
-    background: #d4d7d9;
+    width: 7em;
+    height: 3.35em;
+    margin: 16px;
 }
 
 #log {
@@ -83,7 +79,11 @@ table {
 }
 
 tr {
-    border: thin solid black;
+    border-bottom: thin solid #b0b0b0;
+}
+
+tbody tr:last-child {
+    border-bottom: none;
 }
 
 td,
@@ -93,4 +93,36 @@ th {
 
 th.status {
     width: 10rem;
+}
+
+.frame {
+    box-shadow: 2px 2px 5px 0px rgba(0, 0, 0, 0.75);
+    background-color: white;
+    border: 2em solid white;
+    border-radius: 1em;
+    margin: 1em;
+}
+
+#logo {
+    height: 215px;
+}
+
+input[type=text] {
+    border: thin solid #808080;
+}
+
+progress {
+    -webkit-appearance: none;
+}
+
+progress[value]::-webkit-progress-bar {
+    background-color: #eee;
+    border-radius: 2px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25) inset;
+}
+
+progress[value]::-webkit-progress-value {
+    background-color: green;
+    border-radius: 2px;
+    background-size: 35px 20px, 100% 100%, 100% 100%;
 }
