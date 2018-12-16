@@ -2,7 +2,7 @@
 "use strict";
 
 window.log = (function () {
-    const log = document.getElementById("log")
+    const log = $("#log")
     const levels = ["debug", "info", "warn", "error"]
     let currentLevel = "info"
 
@@ -11,7 +11,7 @@ window.log = (function () {
     }
 
     function _log(level, ...message) {
-        const el =buildElement("p", "log log-" + level, level.toUpperCase(), ": ", ...message) 
+        const el = buildElement("p", "log log-" + level, level.toUpperCase(), ": ", ...message)
 
         if (_levelToInt(level) < _levelToInt(currentLevel)) {
             el.classList.add("hidden")
@@ -30,16 +30,16 @@ window.log = (function () {
             const level = levels[i]
             if (show) {
                 $$(".log-" + level).forEach(x => x.classList.remove("hidden"))
-            } else { 
+            } else {
                 $$(".log-" + level).forEach(x => x.classList.add("hidden"))
             }
             if (level === target) {
                 show = false
-            } 
+            }
         }
     }
 
-    document.getElementById("log-level").addEventListener("change", e => _setLevel(e.target.value.toLowerCase()))
+    $("#log-level").addEventListener("change", e => _setLevel(e.target.value.toLowerCase()))
 
     const cmds = {
         setLevel: _setLevel
@@ -136,6 +136,8 @@ window.Backend = (function () {
  */
 function $$(selector) { return Array.from(document.querySelectorAll(selector)) }
 
+function $(selector) { return document.querySelector(selector) }
+
 /**
  * Removes any child content from el. Returns el for chaining
  * @param {HTMLElement} el 
@@ -212,8 +214,16 @@ function buildElement(tag, options, ...contents) {
     return appendChildren(el, ...contents)
 }
 
+function pad2(num) {
+    if (num < 10) {
+        return "0" + num
+    } else {
+        return "" + num
+    }
+}
+
 function buildFilename(diskId, track) {
-    return `${diskId} - Track ${track.id}.mpeg`
+    return `${diskId} - Track ${pad2(track.id)}.mpg`
 }
 
 function buildTrackRow(diskId, track) {
@@ -221,8 +231,8 @@ function buildTrackRow(diskId, track) {
         buildElement("td", undefined,
             buildElement("input", { class: "rip-check", type: "checkbox", id: "chk-" + track.id })
         ),
-        buildElement("td", undefined, track.id),
-        buildElement("td", undefined, track.chapter),
+        buildElement("td", "text-center", track.id),
+        buildElement("td", "text-center", track.chapters),
         buildElement("td", undefined, track.length),
         buildElement("td", undefined,
             buildElement("input", { type: "text", value: buildFilename(diskId, track), class: "track-filename", id: "ipt-" + track.id })
@@ -230,7 +240,7 @@ function buildTrackRow(diskId, track) {
         buildElement("td", undefined,
             buildElement("progress", { max: 100, value: 0, id: "progress-" + track.id, class: "download-class", title: "0%" }, "0%")
         ),
-        buildElement("td", { id: "download-" + track.id })
+        buildElement("td", { id: "status-" + track.id }, "-"),
     )
 }
 
@@ -243,34 +253,49 @@ function buildTrackRows(scan) {
 }
 
 function handleScanResult(scan) {
+    setContent($("#cmd-scan"), "Scan complete")
     log.info("Scan complete")
-    empty(document.getElementById("tracklist")).appendChild(buildTrackRows(scan))
+    empty($("#tracklist")).appendChild(buildTrackRows(scan))
+    $("#cmd-rip").disabled = false
 
-    document.getElementById("cmd-rip").disabled = false
+    $("#output").classList.remove("hidden")
 }
 
-function cmdSend() {
+function setContent(el, ...content) {
+    appendChildren(empty(el), ...content)
+}
+
+function cmdScan() {
+    const btn = $("#cmd-scan")
+    setContent(btn, "Scanning")
+    btn.disabled = true
     log.info("Requesting scan")
     Backend.send("scan")
 }
 
-function updateProgress(progressBar, percent) {
+function updateProgress(payload, percent) {
+    if (percent === undefined) {
+        percent = payload.percent
+    }
     const percentString = percent + "%"
 
+    setContent($("#status-" + payload.track), "Ripping: ", percentString)
+
+    const progressBar = $("#progress-" + payload.track)
     progressBar.value = percent
-    empty(progressBar).appendChild(textNode(percentString))
+    setContent(progressBar, percentString)
     progressBar.title = percentString
 }
 
 function handleRipStarted(payload) {
+    setContent($("#status-" + payload.track), "Starting rip")
     log.info("Started ripping track ", payload.track)
-    updateProgress($$("#progress-" + payload.track)[0], 0)
+    updateProgress(payload, 0)
 }
 
 function handleRipProgress(payload) {
-    updateProgress($$("#progress-" + payload.track)[0], payload.percent)
+    updateProgress(payload)
 }
-
 
 function notify(payload) {
     if (Notification.permission === "granted") {
@@ -281,26 +306,25 @@ function notify(payload) {
                 notify(payload)
             }
         })
-    } 
+    }
 }
 
 function handleRipCompleted(payload) {
     log.info("Completed ripping track ", payload.track)
-    updateProgress($$("#progress-" + payload.track)[0], 100)
+    updateProgress(payload, 100)
 
-    const chk = document.getElementById("chk-" + payload.track)
+    const chk = $("#chk-" + payload.track)
     chk.checked = false
     chk.disabled = true
 
-    document
-        .getElementById("download-" + payload.track)
-        .appendChild(
-            buildElement("a", {
-                href: "rips/" + payload.filename
-            }, 
-            "Download" 
-            )
+    setContent($("#status-" + payload.track),
+        buildElement("a", {
+            href: "rips/" + payload.filename
+        },
+            "Download"
         )
+    )
+
 
     notify(payload)
 }
@@ -308,9 +332,10 @@ function handleRipCompleted(payload) {
 function cmdRip() {
     const tracks = $$("[type=checkbox]:checked").map(x => {
         const id = x.id.substring("chk-".length)
+        setContent($("#status-" + id), "Queued for rip")
         return {
             track: parseInt(id, 10),
-            filename: document.getElementById("ipt-" + id).value
+            filename: $("#ipt-" + id).value
         }
     })
 
@@ -318,6 +343,6 @@ function cmdRip() {
     Backend.send("rip", tracks)
 }
 
-document.getElementById("cmd-scan").addEventListener("click", cmdSend)
-document.getElementById("cmd-rip").addEventListener("click", cmdRip)
+$("#cmd-scan").addEventListener("click", cmdScan)
+$("#cmd-rip").addEventListener("click", cmdRip)
 

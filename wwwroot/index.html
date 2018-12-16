@@ -6,12 +6,10 @@
     <link rel="stylesheet" type="text/css" href="dvdripper.css">
 </head>
 
-<body>
-    <h1>DVD Ripper</h1>
-    <p>Click <button id="cmd-scan">Scan</button> to scan the DVD in the drive.</p>
-    <p>When the scan is complete, select the tracks you want to rip, update their filenames as needed, and click
-        <button id="cmd-rip">Rip</button></p>
-    <table>
+<body class="centered">
+    <h1 class="text-center">The Fabulous Mr Wilkinson's Discological Discombobulator</h1>
+    <div class="command"><button id="cmd-scan">Scan</button> <button id="cmd-rip" disabled>Rip</button></div>
+    <table id="output" class="hidden">
         <thead>
             <tr>
                 <th>
@@ -21,10 +19,13 @@
                 <th>Chapters</th>
                 <th>Length</th>
                 <th>Filename</th>
+                <th>Progress</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody id="tracklist"></tbody>
     </table>
+    <div class="hidden">
     <h2>Log - <select id="log-level">
         <option>Error</option>
         <option>Warn</option>
@@ -32,6 +33,7 @@
         <option>Debug</option>
     </select></h2>
     <output id="log"></output>
+    </div>
     <script defer src="dvdripper.js"></script>
 </body>
 

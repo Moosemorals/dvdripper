@@ -1,3 +1,43 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+    background-size: cover;
+    background-repeat:no-repeat;
+    background: linear-gradient(to bottom, #d4d7d9 0%,#adadad 100%);
+}
+
+body { 
+    font-family: Arial,"Helvetica Neue",Helvetica,sans-serif;  
+}
+
+.centered {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+}
+
+.command {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+}
+
+.command button {
+    font-family: inherit;
+    font-size: 100%;
+    line-height: 1.15;
+    width: 6em;
+    height: 2.5em;
+    margin: 2em;
+}
+
+#output {
+    background: #d4d7d9;
+}
+
 #log {
     font-size: 60%;
 }
@@ -25,4 +65,24 @@ p.log {
 
 .hidden {
     display: none;
+}
+
+.track-filename {
+    width: 25em;
+    font-family: 'Lucida Console','Lucida Sans Typewriter',monaco,'Bitstream Vera Sans Mono',monospace; 
+}
+
+.text-center {
+    text-align: center;
+}
+
+table { 
+    border-collapse: collapse; 
+}
+
+tr {
+    border: thin solid black;
+}
+td, th {
+    padding: .5em .2em;
 }
