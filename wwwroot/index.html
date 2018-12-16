@@ -1,10 +1,32 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>DVD Ripper</title>
-    </head>
+
+<head>
+    <title>DVD Ripper</title>
+</head>
+
 <body>
-    <output id="out"></output>
+    <h1>DVD Ripper</h1>
+    <p>Click <button id="cmd-scan">Scan</button> to scan the DVD in the drive.</p>
+    <p>When the scan is complete, select the tracks you want to rip, update their filenames as needed, and click
+        <button id="cmd-rip">Rip</button></p>
+    <table>
+        <thead>
+            <tr>
+                <th>
+                    <input type="checkbox" id="chk-all">
+                </th>
+                <th>Track</th>
+                <th>Chapters</th>
+                <th>Length</th>
+                <th>Filename</th>
+            </tr>
+        </thead>
+        <tbody id="tracklist"></tbody>
+    </table>
+    <h2>Log</h2>
+    <output id="log"></output>
     <script defer src="dvdripper.js"></script>
 </body>
+
 </html>
