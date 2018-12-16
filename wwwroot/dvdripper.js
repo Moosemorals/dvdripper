@@ -1,4 +1,3 @@
-
 "use strict";
 
 window.log = (function () {
@@ -56,7 +55,8 @@ window.Backend = (function () {
     const queue = [];
 
     function _getWSPath() {
-        var loc = window.location, result;
+        var loc = window.location,
+            result;
         if (loc.protocol === "https:") {
             result = "wss:";
         } else {
@@ -134,9 +134,13 @@ window.Backend = (function () {
  * @param {string} selector 
  * @returns {[HTMLElement]}
  */
-function $$(selector) { return Array.from(document.querySelectorAll(selector)) }
+function $$(selector) {
+    return Array.from(document.querySelectorAll(selector))
+}
 
-function $(selector) { return document.querySelector(selector) }
+function $(selector) {
+    return document.querySelector(selector)
+}
 
 /**
  * Removes any child content from el. Returns el for chaining
@@ -229,18 +233,36 @@ function buildFilename(diskId, track) {
 function buildTrackRow(diskId, track) {
     return buildElement("tr", undefined,
         buildElement("td", undefined,
-            buildElement("input", { class: "rip-check", type: "checkbox", id: "chk-" + track.id })
+            buildElement("input", {
+                class: "rip-check",
+                type: "checkbox",
+                id: "chk-" + track.id
+            })
         ),
         buildElement("td", "text-center", track.id),
         buildElement("td", "text-center", track.chapters),
         buildElement("td", undefined, track.length),
         buildElement("td", undefined,
-            buildElement("input", { type: "text", value: buildFilename(diskId, track), class: "track-filename", id: "ipt-" + track.id })
+            buildElement("input", {
+                type: "text",
+                value: buildFilename(diskId, track),
+                class: "track-filename",
+                id: "ipt-" + track.id
+            })
         ),
         buildElement("td", undefined,
-            buildElement("progress", { max: 100, value: 0, id: "progress-" + track.id, class: "download-class", title: "0%" }, "0%")
+            buildElement("progress", {
+                max: 100,
+                value: 0,
+                id: "progress-" + track.id,
+                class: "download-class",
+                title: "0%"
+            }, "0%")
         ),
-        buildElement("td", { id: "status-" + track.id }, "-"),
+        buildElement("td", {
+            class: "text-center",
+            id: "status-" + track.id
+        }, "-"),
     )
 }
 
@@ -253,10 +275,11 @@ function buildTrackRows(scan) {
 }
 
 function handleScanResult(scan) {
-    setContent($("#cmd-scan"), "Scan complete")
+    setContent($("#cmd-scan"), "Scan")
     log.info("Scan complete")
     empty($("#tracklist")).appendChild(buildTrackRows(scan))
     $("#cmd-rip").disabled = false
+    $("#cmd-scan").disabled = false
 
     $("#output").classList.remove("hidden")
 }
@@ -266,10 +289,9 @@ function setContent(el, ...content) {
 }
 
 function cmdScan() {
-    const btn = $("#cmd-scan")
-    setContent(btn, "Scanning")
-    btn.disabled = true
     log.info("Requesting scan")
+    setContent(this, "Scanning")
+    this.disabled = true
     Backend.send("scan")
 }
 
@@ -319,20 +341,20 @@ function handleRipCompleted(payload) {
 
     setContent($("#status-" + payload.track),
         buildElement("a", {
-            href: "rips/" + payload.filename
-        },
+                href: "rips/" + payload.filename
+            },
             "Download"
         )
     )
-
 
     notify(payload)
 }
 
 function cmdRip() {
-    const tracks = $$("[type=checkbox]:checked").map(x => {
+    this.disabled = true
+    const tracks = $$(".rip-check:checked").map(x => {
         const id = x.id.substring("chk-".length)
-        setContent($("#status-" + id), "Queued for rip")
+        setContent($("#status-" + id), "Queued")
         return {
             track: parseInt(id, 10),
             filename: $("#ipt-" + id).value
@@ -343,6 +365,40 @@ function cmdRip() {
     Backend.send("rip", tracks)
 }
 
-$("#cmd-scan").addEventListener("click", cmdScan)
-$("#cmd-rip").addEventListener("click", cmdRip)
+function toggleAll(e) {
+    $("#chk-all").indeterminate = false
+    $$(".rip-check").forEach(x => x.checked = this.checked)
+}
 
+function ripCheck(e) {
+    const $all = $("#chk-all")
+    const state = $all.checked
+    let indi = false
+    $$(".rip-check").forEach(x => {
+        if (x.checked !== state) {
+            indi = true
+        }
+    });
+    $all.indeterminate = indi
+
+    const id = this.id.substring("chk-".length)
+    setContent($("#status-" + id), this.checked ? "Selected" : "")
+}
+
+const handlers = {
+    "#chk-all": toggleAll,
+    ".rip-check": ripCheck,
+    "#cmd-scan": cmdScan,
+    "#cmd-rip": cmdRip
+}
+
+document.addEventListener("click", e => {
+    for (let key in handlers) {
+        const target = e.target.closest(key);
+
+        if (target !== null) {
+            handlers[key].call(target, e)
+            return;
+        }
+    }
+})
