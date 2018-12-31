@@ -23,9 +23,10 @@ type RipTrack struct {
 }
 
 type client struct {
-	conn    *websocket.Conn
-	out     chan CmdPacket
-	control chan bool
+	conn      *websocket.Conn
+	out       chan CmdPacket
+	control   chan bool
+	interrupt chan bool
 }
 
 func (c *client) writeHandler() {
@@ -87,6 +88,11 @@ func (c *client) doScan() error {
 	return nil
 }
 
+func (c *client) doInterupt() error {
+	c.interrupt <- true
+	return nil
+}
+
 func (c *client) doRip(payload json.RawMessage) error {
 
 	tracks := []RipTrack{}
@@ -108,9 +114,22 @@ func (c *client) doRip(payload json.RawMessage) error {
 
 		go m.rip(track.Track, "wwwroot/rips/"+track.Filename)
 
-		for update := range m.progress {
-			if err := c.send("rip-progress", update); err != nil {
-				return err
+	outer:
+		for {
+			select {
+			case update, ok := <-m.progress:
+				if !ok {
+					break outer
+				}
+				if err := c.send("rip-progress", update); err != nil {
+					return err
+				}
+			case <-c.interrupt:
+				m.interrupt <- true
+				if err := c.send("rip-interrupted", track); err != nil {
+					return err
+				}
+				return nil
 			}
 		}
 
@@ -141,6 +160,8 @@ func (c *client) readHandler(in io.Reader) error {
 		err = c.doScan()
 	case "rip":
 		err = c.doRip(cmd.Payload)
+	case "interrupt":
+		err = c.doInterupt()
 	default:
 		c.out <- buildErrorResponse("Unknown command: " + cmd.Command)
 	}
@@ -161,9 +182,10 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	client := client{
-		conn:    conn,
-		out:     make(chan CmdPacket),
-		control: make(chan bool),
+		conn:      conn,
+		out:       make(chan CmdPacket),
+		control:   make(chan bool),
+		interrupt: make(chan bool),
 	}
 
 	go client.writeHandler()

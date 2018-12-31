@@ -17,7 +17,8 @@ type DVDProgress struct {
 }
 
 type mplayer struct {
-	progress chan DVDProgress
+	progress  chan DVDProgress
+	interrupt chan bool
 }
 
 // These two functions are adappted from the go library scanlines
@@ -54,17 +55,26 @@ func scanLines(data []byte, atEOF bool) (advance int, token []byte, err error) {
 func (m *mplayer) rip(track int, dest string) error {
 	src := fmt.Sprintf("dvd://%d", track)
 
-	cmd, stdout, err := startCmd("/usr/bin/mplayer", "-quiet", "-nocache", "-dumpstream", src, "-dumpfile", dest)
+	dumpRE := regexp.MustCompile(`^dump: (\d+) bytes written(?: \(~(\d+\.\d+)%\))?$`)
 
+	cmd, stdout, err := startCmd("/usr/bin/mplayer", "-quiet", "-nocache", "-dumpstream", src, "-dumpfile", dest)
 	if err != nil {
 		return err
 	}
 
-	dumpRE := regexp.MustCompile(`^dump: (\d+) bytes written \(~(\d+\.\d+)%\)$`)
-
 	scanner := bufio.NewScanner(stdout)
 	scanner.Split(scanLines)
+outer:
 	for scanner.Scan() {
+		select {
+		case <-m.interrupt:
+			if err := cmd.Process.Kill(); err != nil {
+				log.Printf("WARN: Couldn't kill mplayer: %v", err)
+			}
+			break outer
+		default:
+			// Does nothing
+		}
 		line := scanner.Text()
 		if dumpRE.MatchString(line) {
 			match := dumpRE.FindStringSubmatch(line)
@@ -78,20 +88,18 @@ func (m *mplayer) rip(track int, dest string) error {
 			percent, err := strconv.ParseFloat(match[2], 64)
 			if err != nil {
 				log.Printf("WARN: %+v", err)
-				continue
+				// ignore it really
+				percent = -1
 			}
 			m.progress <- DVDProgress{
 				Track:   track,
 				Bytes:   bytes,
 				Percent: percent,
 			}
-
 		}
 	}
 
-	cmd.Wait()
-
 	close(m.progress)
-
+	cmd.Wait()
 	return nil
 }

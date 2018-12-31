@@ -274,14 +274,21 @@ function buildTrackRows(scan) {
     return rows
 }
 
+function buildErrorRow(message) {
+    return buildElement("tr", undefined, buildElement("td", {colspan:5}, message))
+}
+
 function handleScanResult(scan) {
     setContent($("#cmd-scan"), "Scan")
     log.info("Scan complete")
-    empty($("#tracklist")).appendChild(buildTrackRows(scan))
-    $("#cmd-rip").disabled = false
-    $("#cmd-scan").disabled = false
-
-    $("#output").classList.remove("hidden")
+    if (scan.tracks !== null) {
+        empty($("#tracklist")).appendChild(buildTrackRows(scan))
+        $("#cmd-rip").disabled = false
+        $("#cmd-scan").disabled = false
+    } else {
+        empty($("#tracklist")).appendChild(buildErrorRow("No tracks found"))
+    }
+     $("#output").classList.remove("hidden")
 }
 
 function setContent(el, ...content) {
@@ -299,14 +306,20 @@ function updateProgress(payload, percent) {
     if (percent === undefined) {
         percent = payload.percent
     }
-    const percentString = percent + "%"
-
-    setContent($("#status-" + payload.track), "Ripping: ", percentString)
-
+    let percentString
     const progressBar = $("#progress-" + payload.track)
-    progressBar.value = percent
-    setContent(progressBar, percentString)
+    if (percent !== -1) {
+        percentString = percent + "%"
+        progressBar.value = percent
+    } else {
+        percentString = "-%"
+        progressBar.removeAttribute("value")
+    }
+
     progressBar.title = percentString
+    setContent($("#status-" + payload.track), "Ripping: ", percentString)
+    setContent(progressBar, percentString)
+    
 }
 
 function handleRipStarted(payload) {
