@@ -106,6 +106,9 @@ window.Backend = (function () {
             case "scan":
                 handleScanResult(json.payload)
                 break;
+            case "freespace":
+                handleFreespace(json.payload)
+                break;
         }
     }
 
@@ -330,6 +333,14 @@ function handleRipStarted(payload) {
 
 function handleRipProgress(payload) {
     updateProgress(payload)
+}
+
+
+function handleFreespace(payload) {
+    const fs = $("#fs")
+    fs.min = 0
+    fs.max = payload.total
+    fs.value = payload.total - payload.free
 }
 
 function notify(payload) {

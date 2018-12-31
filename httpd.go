@@ -188,7 +188,12 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		interrupt: make(chan bool),
 	}
 
+	defer close(client.control)
 	go client.writeHandler()
+
+	shutdown := make(chan bool)
+	go client.pushFreespace(shutdown)
+	defer func() { shutdown <- true }()
 
 	for {
 		messageType, in, err := conn.NextReader()
