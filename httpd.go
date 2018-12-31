@@ -162,6 +162,8 @@ func (c *client) readHandler(in io.Reader) error {
 		err = c.doRip(cmd.Payload)
 	case "interrupt":
 		err = c.doInterupt()
+	case "eject":
+		err = c.doEject()
 	default:
 		c.out <- buildErrorResponse("Unknown command: " + cmd.Command)
 	}

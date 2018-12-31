@@ -7,18 +7,21 @@
 </head>
 
 <body class="centered">
-    <div id="logo" class="frame"><img alt="The Fabulous Mr Wilkinson's Discological Discombobulator" src="logo.png" width="767"
-            height="215"></div>
+    <div id="logo" class="frame"><img alt="The Fabulous Mr Wilkinson's Discological Discombobulator" src="logo.png"
+            width="767" height="215"></div>
     <div class="freespace frame">
-        <meter id="fs">Disk space used</meter> 
+        <meter id="fs">Disk space used</meter>
     </div>
-    <div class="command frame"><button id="cmd-scan">Scan</button> <button id="cmd-rip" disabled>Rip</button></div>
+    <div class="command frame">
+        <button id="cmd-scan">Scan</button>
+        <button id="cmd-rip" disabled>Rip</button>
+        <button id="cmd-eject">Eject</button>
+    </div>
     <div id="output" class="hidden frame">
         <table>
             <thead>
                 <tr>
                     <th>
-                        <input type="checkbox" id="chk-all">
                     </th>
                     <th>Track</th>
                     <th>Chapters</th>
@@ -28,6 +31,21 @@
                     <th class="status">Status</th>
                 </tr>
             </thead>
+            <tbody>
+                <tr>
+                    <td colspan="4">
+                        <label>
+                            <input type="checkbox" id="chk-all">
+                            Toggle all
+                        </label>
+                    </td>
+                    <td>
+                        <input type="text" class="track-filename" id="track-all">
+                    </td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
             <tbody id="tracklist"></tbody>
         </table>
     </div>

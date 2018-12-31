@@ -285,6 +285,7 @@ function handleScanResult(scan) {
     setContent($("#cmd-scan"), "Scan")
     log.info("Scan complete")
     if (scan.tracks !== null) {
+        $("#track-all").value = `${scan.diskId} - Track`
         empty($("#tracklist")).appendChild(buildTrackRows(scan))
         $("#cmd-rip").disabled = false
         $("#cmd-scan").disabled = false
@@ -334,7 +335,6 @@ function handleRipStarted(payload) {
 function handleRipProgress(payload) {
     updateProgress(payload)
 }
-
 
 function handleFreespace(payload) {
     const fs = $("#fs")
@@ -409,20 +409,36 @@ function ripCheck(e) {
     setContent($("#status-" + id), this.checked ? "Selected" : "")
 }
 
-const handlers = {
+function cmdStop() {
+    Backend.send("interrupt")
+}
+
+function cmdEject() {
+    Backend.send("eject")
+}
+
+const clickHandlers = {
     "#chk-all": toggleAll,
     ".rip-check": ripCheck,
     "#cmd-scan": cmdScan,
-    "#cmd-rip": cmdRip
+    "#cmd-rip": cmdRip,
+    "#cmd-eject": cmdEject
 }
 
 document.addEventListener("click", e => {
-    for (let key in handlers) {
+    for (let key in clickHandlers) {
         const target = e.target.closest(key);
 
         if (target !== null) {
-            handlers[key].call(target, e)
+            clickHandlers[key].call(target, e)
             return;
         }
     }
+})
+
+$("#track-all").addEventListener("input", e=> {
+    const name = e.target.value
+    $$("#tracklist .track-filename").forEach((ipt, i) => {
+        ipt.value = `${name} ${pad2(i)}.mpg`
+    })
 })
