@@ -1,0 +1,11 @@
+[Unit]
+Description=A tool to rip DVDs
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/home/shinju/go/bin/dvdripper
+User=shinju
+WorkingDirectory=/home/shinju/Projects/dvdripper
