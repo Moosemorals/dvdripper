@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/websocket"
 )
@@ -93,6 +94,31 @@ func (c *client) doInterupt() error {
 	return nil
 }
 
+func (c *client) doTidy() error {
+	const base = "wwwroot/rips"
+
+	dir, err := os.Open(base)
+	if err != nil {
+		return err
+	}
+
+	names, err := dir.Readdirnames(-1)
+	if err != nil {
+		return err
+	}
+
+	log.Println("DEBUG: tidy")
+
+	for _, n := range names {
+		log.Printf("DEBUG: deleting %s", n)
+		if err := os.Remove(base + "/" + n); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (c *client) doRip(payload json.RawMessage) error {
 
 	tracks := []RipTrack{}
@@ -164,6 +190,8 @@ func (c *client) readHandler(in io.Reader) error {
 		err = c.doInterupt()
 	case "eject":
 		err = c.doEject()
+	case "tidy":
+		err = c.doTidy()
 	default:
 		c.out <- buildErrorResponse("Unknown command: " + cmd.Command)
 	}

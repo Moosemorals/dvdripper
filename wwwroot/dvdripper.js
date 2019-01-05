@@ -417,12 +417,17 @@ function cmdEject() {
     Backend.send("eject")
 }
 
+function cmdTidy() {
+    Backend.send("tidy")
+}
+
 const clickHandlers = {
     "#chk-all": toggleAll,
     ".rip-check": ripCheck,
     "#cmd-scan": cmdScan,
     "#cmd-rip": cmdRip,
-    "#cmd-eject": cmdEject
+    "#cmd-eject": cmdEject,
+    "#cmd-tidy": cmdTidy
 }
 
 document.addEventListener("click", e => {
