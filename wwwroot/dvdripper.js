@@ -336,11 +336,25 @@ function handleRipProgress(payload) {
     updateProgress(payload)
 }
 
+function formatGB(num) {
+    return (num / Math.pow(2, 30)).toFixed(0)
+}
+
 function handleFreespace(payload) {
-    const fs = $("#fs")
-    fs.min = 0
-    fs.max = payload.total
-    fs.value = payload.total - payload.free
+    const used = payload.total - payload.free
+    const fsMeter = $("#fs-meter")
+
+    if (fsMeter.min === 0) {
+        fsMeter.min = used 
+    } else {
+        const u = parseInt(fsMeter.min, 10)
+        if (u > used) {
+            fsMeter.min = used
+        }
+    }
+    fsMeter.max = payload.total
+    fsMeter.value = used 
+   // appendChildren(empty($("#fs-text")), formatGB(used), "Gb/", formatGB(fsMeter.max - fsMeter.min), "Gb")
 }
 
 function notify(payload) {
@@ -444,6 +458,6 @@ document.addEventListener("click", e => {
 $("#track-all").addEventListener("input", e=> {
     const name = e.target.value
     $$("#tracklist .track-filename").forEach((ipt, i) => {
-        ipt.value = `${name} ${pad2(i)}.mpg`
+        ipt.value = `${name} ${pad2(i + 1)}.mpg`
     })
 })
