@@ -1,66 +1,69 @@
 <!DOCTYPE html>
 <html>
 
-<head>
-    <title>DVD Ripper</title>
-    <link rel="stylesheet" type="text/css" href="dvdripper.css">
-</head>
+    <head>
+        <title>DVD Ripper</title>
+        <link rel="stylesheet" type="text/css" href="dvdripper.css">
+        <link rel="icon" type="image/png" sizes="16x16" href="icons/Icon 16.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="icons/Icon 32.png">
+        <link rel="icon" type="image/png" sizes="64x64" href="icons/Icon 64.png">
+        <link rel="icon" type="image/png" sizes="128x128" href="icons/Icon 128.png">
+        <link rel="icon" type="image/png" sizes="256x256" href="icons/Icon 256.png">
+    </head>
 
-<body class="centered">
-    <div id="logo" class="frame"><img alt="The Fabulous Mr Wilkinson's Discological Discombobulator" src="logo.png"
-            width="767" height="215"></div>
-    <div class="freespace frame">
-        <meter id="fs-meter">Disk space used</meter>
-        <output id="fs-text"></output>
-    </div>
-    <div class="command frame">
-        <button id="cmd-scan">Scan</button>
-        <button id="cmd-rip" disabled>Rip</button>
-        <button id="cmd-eject">Eject</button>
-        <button id="cmd-tidy">Tidy</button>
-    </div>
-    <div id="output" class="hidden frame">
-        <table>
-            <thead>
-                <tr>
-                    <th>
-                    </th>
-                    <th>Track</th>
-                    <th>Chapters</th>
-                    <th>Length</th>
-                    <th>Filename</th>
-                    <th>Progress</th>
-                    <th class="status">Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td colspan="4">
-                        <label>
-                            <input type="checkbox" id="chk-all">
-                            Toggle all
-                        </label>
-                    </td>
-                    <td>
-                        <input type="text" class="track-filename" id="track-all">
-                    </td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </tbody>
-            <tbody id="tracklist"></tbody>
-        </table>
-    </div>
-    <div class="hidden">
-        <h2>Log - <select id="log-level">
-                <option>Error</option>
-                <option>Warn</option>
-                <option selected>Info</option>
-                <option>Debug</option>
-            </select></h2>
-        <output id="log"></output>
-    </div>
-    <script defer src="dvdripper.js"></script>
-</body>
+    <body class="centered">
+        <div id="logo" class="frame"><img alt="The Fabulous Mr Wilkinson's Discological Discombobulator" src="logo.png"
+                width="767" height="215"></div>
+        <div class="freespace frame">
+            <meter id="fs-meter">Disk space used</meter>
+            <output id="fs-text"></output>
+        </div>
+        <div class="command frame">
+            <button id="cmd-scan">Scan</button>
+            <button id="cmd-rip" disabled>Rip</button>
+            <button id="cmd-eject">Eject</button>
+            <button id="cmd-tidy">Tidy</button>
+        </div>
+        <div id="output" class="hidden frame">
+            <table>
+                <thead>
+                    <tr>
+                        <th>
+                        </th>
+                        <th>Track</th>
+                        <th>Chapters</th>
+                        <th>Length</th>
+                        <th>Filename</th>
+                        <th>Progress</th>
+                        <th class="status">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="4">
+                            <label>
+                                <input type="checkbox" id="chk-all"> Toggle all </label>
+                        </td>
+                        <td>
+                            <input type="text" class="track-filename" id="track-all">
+                        </td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+                <tbody id="tracklist"></tbody>
+            </table>
+        </div>
+        <div class="hidden">
+            <h2>Log - <select id="log-level">
+                    <option>Error</option>
+                    <option>Warn</option>
+                    <option selected>Info</option>
+                    <option>Debug</option>
+                </select></h2>
+            <output id="log"></output>
+        </div>
+        <script defer src="dvdripper.js"></script>
+    </body>
 
 </html>
